@@ -3,6 +3,9 @@ module com.smartcard.smart_card_fx {
     requires javafx.fxml;
     requires javafx.web;
     requires kotlin.stdlib;
+    requires java.smartcardio;
+    requires persistence.api;
+    requires io.ebean;
 
     requires org.controlsfx.controls;
     requires com.dlsc.formsfx;

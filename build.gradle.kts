@@ -5,6 +5,7 @@ plugins {
     id("org.javamodularity.moduleplugin") version "1.8.15"
     id("org.openjfx.javafxplugin") version "0.0.13"
     id("org.beryx.jlink") version "2.25.0"
+    id("io.ebean") version "13.11.0"
 }
 
 group = "com.smartcard"
@@ -19,6 +20,10 @@ val junitVersion = "5.12.1"
 
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
+}
+
+tasks.withType<JavaExec> {
+    jvmArgs = listOf("-Dfile.encoding=UTF-8")
 }
 
 application {
@@ -53,6 +58,29 @@ dependencies {
     }
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+
+    // 1. SQLite Driver
+    implementation("org.xerial:sqlite-jdbc:3.47.1.0")
+
+    // 2. Ebean ORM (loại bỏ slf4j cũ để tránh xung đột)
+    implementation("io.ebean:ebean:13.14.0") {
+        exclude(group = "org.slf4j", module = "slf4j-api")
+    }
+
+    // Query Bean Generator (để dùng các class bắt đầu bằng chữ Q...)
+    annotationProcessor("io.ebean:querybean-generator:13.14.0")
+
+    // Nếu bạn dùng Java 9+ thì cần thêm cái này để Ebean chạy mượt
+    testAnnotationProcessor("io.ebean:querybean-generator:13.14.0")
+
+    // 3. Jackson (Xử lý JSON)
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
+    implementation("com.fasterxml.jackson.core:jackson-core:2.15.2")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.15.2")
+
+    // 4. Logging (Logback + SLF4J)
+    implementation("org.slf4j:slf4j-api:1.7.32")
+
 }
 
 tasks.withType<Test> {
