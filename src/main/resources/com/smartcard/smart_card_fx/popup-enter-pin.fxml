@@ -8,7 +8,7 @@
 
 <AnchorPane style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.smartcard.smart_card_fx.view.viewcontroller.EnterPinPopupController">
 
-    <VBox alignment="CENTER" prefHeight="280.0" prefWidth="420.0" spacing="25.0" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #CFD8DC; -fx-border-width: 1;" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+    <VBox alignment="CENTER" prefHeight="280.0" prefWidth="420.0" spacing="25.0" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
 
         <padding>
             <Insets bottom="30.0" left="40.0" right="40.0" top="30.0" />
@@ -42,7 +42,7 @@
                 </font>
             </Button>
 
-            <Button fx:id="rightBtn" defaultButton="true" onAction="#onRightBtnClick" prefHeight="40.0" prefWidth="120.0" style="-fx-background-color: #263238; -fx-text-fill: white; -fx-background-radius: 4; -fx-font-weight: bold; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 5, 0, 0, 2);" text="Xác nhận">
+            <Button fx:id="rightBtn" defaultButton="true" onAction="#onRightBtnClick" prefHeight="40.0" prefWidth="120.0" style="-fx-background-color: #263238; -fx-text-fill: white; -fx-background-radius: 4; -fx-font-weight: bold; -fx-cursor: hand;" text="Xác nhận">
                 <font>
                     <Font size="14.0" />
                 </font>
@@ -51,7 +51,4 @@
 
     </VBox>
 
-    <effect>
-        <DropShadow blurType="GAUSSIAN" color="#00000033" height="20.0" radius="9.5" width="20.0" />
-    </effect>
 </AnchorPane>

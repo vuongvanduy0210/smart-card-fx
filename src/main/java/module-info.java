@@ -15,6 +15,9 @@ module com.smartcard.smart_card_fx {
     requires eu.hansolo.tilesfx;
     requires com.almasb.fxgl.all;
 
+    requires kotlinx.coroutines.core;
+    requires kotlinx.coroutines.javafx;
+
     opens com.smartcard.smart_card_fx to javafx.fxml;
     exports com.smartcard.smart_card_fx;
 }

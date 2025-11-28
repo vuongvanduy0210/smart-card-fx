@@ -2,8 +2,8 @@
 
 import com.smartcard.smart_card_fx.model.ApduResult
 import com.smartcard.smart_card_fx.model.ApplicationState
+import com.smartcard.smart_card_fx.utils.RSAUtils
 import java.io.ByteArrayOutputStream
-import java.security.PublicKey
 import java.util.*
 import javax.smartcardio.CommandAPDU
 import javax.smartcardio.TerminalFactory
@@ -92,8 +92,7 @@ class CardController {
 
     fun isCardActive(): Boolean {
         // Gửi lệnh APDU: 00 02 05 08 để lấy số lần thử PIN còn lại
-        val result = sendApdu(0x00, 0x02, 0x05, 0x08, null)
-        return when (result) {
+        return when (val result = sendApdu(0x00, 0x02, 0x05, 0x08, null)) {
             is ApduResult.Success -> {
                 println("APDU command executed successfully!")
                 val hexResponse = bytesToHex(result.response)
@@ -139,6 +138,7 @@ class CardController {
                 println("Card Id: $cardId")
                 cardId
             }
+
             is ApduResult.Failed -> {
                 println("Failed to execute APDU command.")
                 println("response: " + bytesToHex(result.response))
@@ -157,22 +157,43 @@ class CardController {
         val publicKey = parseHexStringToByteArray(storedPublicKey)
         println("[DEBUG] Public key: " + bytesToHex(publicKey))
 
-        when (val result = sendApdu(0x00, 0x01, 0x06, 0x00, stringToHexArray(challenge))) {
+        return when (val result = sendApdu(0x00, 0x01, 0x06, 0x00, stringToHexArray(challenge))) {
             is ApduResult.Success -> {
                 println("APDU command executed successfully!")
                 println("response: " + bytesToHex(result.response))
                 println("[DEBUG] Signature Sucess: " + bytesToHex(result.response))
+                verifySignature(publicKey, result.response, challenge)
             }
-            is ApduResult.Failed -> TODO()
+
+            is ApduResult.Failed -> {
+                println("Failed to execute APDU command.")
+                val error = bytesToHex(result.response)
+                println("[DEBUG] Signature Failed: $error")
+                false
+            }
         }
     }
 
-    private fun verifySignature(publicKey: ByteArray?, signature: ByteArray?, challenge: String?): Boolean {
-        val key: PublicKey? = RSAUtils.generatePublicKeyFromBytes(publicKey)
-        if (key == null) {
-            return false
-        }
+    private fun verifySignature(publicKey: ByteArray?, signature: ByteArray?, challenge: String): Boolean {
+        val key = RSAUtils.generatePublicKeyFromBytes(publicKey) ?: return false
         return RSAUtils.accuracy(signature, key, challenge)
+    }
+
+    fun verifyCard(pinCode: String, onResult: (Boolean, Int) -> Unit) {
+        when (val result = sendApdu(0x00, 0x00, 0x00, 0x00, stringToHexArray(pinCode))) {
+            is ApduResult.Success -> {
+                println("APDU command executed successfully!")
+                println("response: " + bytesToHex(result.response))
+                ApplicationState.setCardVerified(true)
+                onResult.invoke(true, 5)
+            }
+            is ApduResult.Failed -> {
+                println("Failed to execute APDU command.")
+                println("response: " + bytesToHex(result.response))
+                ApplicationState.setCardVerified(false)
+                onResult.invoke(false, bytesToHex(result.response)?.toInt() ?: 0)
+            }
+        }
     }
 
     fun disconnectCard() {
@@ -180,7 +201,7 @@ class CardController {
     }
 
     fun isCardConnected(): Boolean {
-        return ApplicationState.isCardInserted.value && ApplicationState.isCardVerified
+        return ApplicationState.isCardInserted.value && ApplicationState.isCardVerified.value
     }
 
     fun bytesToHex(bytes: ByteArray?): String? {

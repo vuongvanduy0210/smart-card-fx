@@ -7,20 +7,26 @@ import javax.smartcardio.Card
 object ApplicationState {
     private val _isCardInserted = MutableStateFlow(false)
     val isCardInserted = _isCardInserted.asStateFlow()
+
+    private val _isCardVerified = MutableStateFlow(false)
+    val isCardVerified = _isCardVerified.asStateFlow()
+
     fun setCardInserted(inserted: Boolean) {
         _isCardInserted.value = inserted
     }
+    fun setCardVerified(verified: Boolean) {
+        _isCardVerified.value = verified
+    }
 
     var isAppLoggedIn: Boolean = false
-    var isCardVerified: Boolean = false
 
     var cardNumber: String? = null
     var card: Card? = null
 
     fun reset() {
         _isCardInserted.value = false
+        _isCardVerified.value = false
         isAppLoggedIn = false
-        isCardVerified = false
         cardNumber = null
         card?.disconnect(false)
         card = null

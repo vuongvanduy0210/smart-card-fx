@@ -19,6 +19,7 @@ import javafx.stage.Stage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.javafx.JavaFx
@@ -46,7 +47,12 @@ open class HomeController {
     private val uiScope = CoroutineScope(Dispatchers.JavaFx + SupervisorJob())
 
     fun init() {
-        ApplicationState.isCardInserted.onEach {
+        combine(
+            ApplicationState.isCardInserted,
+            ApplicationState.isCardVerified
+        ) { isCardInserted, isCardVerified ->
+            isCardInserted && isCardVerified
+        }.onEach {
             updateUI(it)
         }.launchIn(uiScope)
     }
@@ -56,7 +62,7 @@ open class HomeController {
         if (CardController.getInstance().isCardConnected()) {
 
         } else {
-
+            handleInsertCard()
         }
 
     }
@@ -64,12 +70,12 @@ open class HomeController {
     private fun handleInsertCard() {
         GlobalLoader.fxmlLoaderPopupEnterPin =
             FXMLLoader(MainApplication::class.java.getResource("popup-enter-pin.fxml"))
-        val controller = GlobalLoader.fxmlLoaderPopupEnterPin.getController<EnterPinPopupController>()
         val popupStage = Stage().apply {
             initModality(Modality.APPLICATION_MODAL)
             title = "Kết nối thẻ"
             scene = Scene(GlobalLoader.fxmlLoaderPopupEnterPin.load())
         }
+        val controller = GlobalLoader.fxmlLoaderPopupEnterPin.getController<EnterPinPopupController>()
         controller.initialize(
             label = "Nhập mã pin (6 ký tự)",
             hint = "Mã pin",
@@ -79,7 +85,7 @@ open class HomeController {
             onClickLeftBtn = { popup ->
                 popup.dismiss()
             },
-            onClickRightBtn = { popup, value ->
+            onClickRightBtn = { popup, pinCode ->
                 CardController.getInstance().connectCard { isConnected ->
                     if (isConnected) {
                         if (!CardController.getInstance().isCardActive()) {
@@ -92,8 +98,32 @@ open class HomeController {
                         }
 
                         println("Card is active")
-                        CardController.getInstance().getCardId()?.let {
-                            val isCardVerified = CardController.getInstance().
+                        CardController.getInstance().getCardId()?.let { cardId ->
+                            val isCardVerified = CardController.getInstance().challengeCard(cardId)
+                            if (!isCardVerified) {
+                                ViewUtils.showPopupNotice("Thẻ không hợp lệ do sai định dạng")
+                                return@connectCard
+                            }
+
+                            println("Challenge success")
+                            CardController.getInstance().verifyCard(pinCode) { isVerified, pinAttemptsRemain ->
+                                if (!isVerified) {
+                                    println("Pin code is incorrect!: $pinAttemptsRemain")
+                                    if (pinAttemptsRemain > 0) {
+                                        popup.dismiss()
+                                        Platform.runLater {
+                                            showErrorPinCode()
+                                        }
+                                        return@verifyCard
+                                    }
+                                }
+                                // Card connected successfully
+                                println("Card connected successfully!")
+                                popup.dismiss()
+                                Platform.runLater {
+
+                                }
+                            }
                         }
 
                     } else {
@@ -103,6 +133,46 @@ open class HomeController {
             }
         )
 
+        popupStage.showAndWait()
+    }
+
+    private fun showErrorPinCode() {
+        val controller = GlobalLoader.fxmlLoaderPopupEnterPin.getController<EnterPinPopupController>()
+        val popupStage = Stage().apply {
+            initModality(Modality.APPLICATION_MODAL)
+            title = "Nhập mã pin"
+            scene = Scene(GlobalLoader.fxmlLoaderPopupEnterPin.load())
+        }
+        controller.initialize(
+            label = "Bạn đã nhập sai mã PIN, vui lòng thử lại",
+            hint = "Mã pin",
+            leftLabel = "Huỷ",
+            rightLabel = "Xác nhận",
+            stage = popupStage,
+            onClickLeftBtn = { popup ->
+                popup.dismiss()
+            },
+            onClickRightBtn = { popup, pinCode ->
+                CardController.getInstance().verifyCard(pinCode) { isVerified, pinAttemptsRemain ->
+                    if (!isVerified) {
+                        if (pinAttemptsRemain > 0) {
+                            ViewUtils.showPopupNotice("Nhập sai mã pin! Còn $pinAttemptsRemain lần thử!")
+                        } else {
+                            popup.dismiss()
+                            Platform.runLater {
+                                ViewUtils.showPopupNotice("Thẻ đã bị khoá do quá số lần sai cho phép!") {
+                                    Platform.runLater { this.showNoCardInserted() }
+                                }
+                            }
+                        }
+                        return@verifyCard
+                    }
+                    // Card connected successfully
+                    println("Card connected successfully!")
+                    popup.dismiss()
+                }
+            }
+        )
         popupStage.showAndWait()
     }
 
