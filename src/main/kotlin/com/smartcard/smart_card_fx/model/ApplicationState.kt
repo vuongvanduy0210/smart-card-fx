@@ -1,9 +1,16 @@
 package com.smartcard.smart_card_fx.model
 
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.smartcardio.Card
 
 object ApplicationState {
-    var isCardInserted: Boolean = false
+    private val _isCardInserted = MutableStateFlow(false)
+    val isCardInserted = _isCardInserted.asStateFlow()
+    fun setCardInserted(inserted: Boolean) {
+        _isCardInserted.value = inserted
+    }
+
     var isAppLoggedIn: Boolean = false
     var isCardVerified: Boolean = false
 
@@ -11,7 +18,7 @@ object ApplicationState {
     var card: Card? = null
 
     fun reset() {
-        isCardInserted = false
+        _isCardInserted.value = false
         isAppLoggedIn = false
         isCardVerified = false
         cardNumber = null

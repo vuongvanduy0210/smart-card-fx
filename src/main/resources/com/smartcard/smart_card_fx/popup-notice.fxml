@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.smartcard.smart_card_fx.view.viewcontroller.PopupNoticeController">
+
+    <VBox alignment="CENTER" prefHeight="200.0" prefWidth="380.0" spacing="25.0" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #CFD8DC; -fx-border-width: 1;" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+
+        <padding>
+            <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
+        </padding>
+
+        <Label fx:id="label" alignment="CENTER" text="Đổi mã PIN thành công" textAlignment="CENTER" textFill="#37474F" wrapText="true">
+            <font>
+                <Font name="Segoe UI Bold" size="18.0" />
+            </font>
+        </Label>
+
+        <Button fx:id="btnOK" defaultButton="true" onAction="#onBtnClick" prefHeight="40.0" prefWidth="120.0" style="-fx-background-color: #263238; -fx-text-fill: white; -fx-background-radius: 4; -fx-font-weight: bold; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 5, 0, 0, 2);" text="OK">
+            <font>
+                <Font size="14.0" />
+            </font>
+        </Button>
+
+    </VBox>
+
+    <effect>
+        <DropShadow blurType="GAUSSIAN" color="#00000033" height="15.0" radius="7.0" width="15.0" />
+    </effect>
+</AnchorPane>

@@ -3,7 +3,8 @@
 import com.smartcard.smart_card_fx.model.ApduResult
 import com.smartcard.smart_card_fx.model.ApplicationState
 import java.io.ByteArrayOutputStream
-import javax.smartcardio.CardException
+import java.security.PublicKey
+import java.util.*
 import javax.smartcardio.CommandAPDU
 import javax.smartcardio.TerminalFactory
 
@@ -39,9 +40,10 @@ class CardController {
         when (val result = sendApdu(0x00, 0xA4, 0x04, 0x00, appletAID)) {
             is ApduResult.Success -> {
                 println("Gửi lệnh select thành công!")
-                ApplicationState.isCardInserted = true
+                ApplicationState.setCardInserted(true)
                 onResult(true)
             }
+
             is ApduResult.Failed -> {
                 println("Gửi lệnh thẻ thất bại. SW: $result")
                 onResult(false)
@@ -88,8 +90,115 @@ class CardController {
         }
     }
 
+    fun isCardActive(): Boolean {
+        // Gửi lệnh APDU: 00 02 05 08 để lấy số lần thử PIN còn lại
+        val result = sendApdu(0x00, 0x02, 0x05, 0x08, null)
+        return when (result) {
+            is ApduResult.Success -> {
+                println("APDU command executed successfully!")
+                val hexResponse = bytesToHex(result.response)
+                println("response: $hexResponse")
+                try {
+                    // Chuyển Hex String sang Int (cơ số 16 để an toàn nếu kết quả là 0A, 0B...)
+                    // Lưu ý: Java code cũ dùng Integer.parseInt mặc định là cơ số 10, có thể lỗi nếu hex có chữ cái.
+                    val remainingAttempt = hexResponse?.trim()?.toIntOrNull(16) ?: 0
+
+                    println("Remaining attempt: $remainingAttempt")
+                    remainingAttempt > 0
+
+                } catch (e: Exception) {
+                    println("Lỗi phân tích số lần thử: ${e.message}")
+                    false
+                }
+            }
+
+            is ApduResult.Failed -> {
+                println("Failed to execute APDU command.")
+                println("response: ${bytesToHex(result.response)}")
+                false
+            }
+        }
+    }
+
+    fun getCardId(): String? {
+        return when (val result = sendApdu(0x00, 0x02, 0x05, 0x0A, null)) {
+            is ApduResult.Success -> {
+                println("APDU command executed successfully!")
+                println("response: " + bytesToHex(result.response))
+
+                if (result.response == null) {
+                    return null
+                }
+
+                if (result.response.size != 12) {
+                    println("Invalid Card Id length.")
+                    return null
+                }
+
+                val cardId = hexToString(bytesToHex(result.response))
+                println("Card Id: $cardId")
+                cardId
+            }
+            is ApduResult.Failed -> {
+                println("Failed to execute APDU command.")
+                println("response: " + bytesToHex(result.response))
+                null
+            }
+        }
+    }
+
+    fun challengeCard(citizenId: String): Boolean {
+        val challenge = Random().nextInt(1000000).toString()
+        println("[DEBUG] Challenge: $challenge")
+        val storedPublicKey = DBController.getPublicKeyById(citizenId)
+        println("[DEBUG] Stored public key: $storedPublicKey")
+        if (storedPublicKey == null) return false
+
+        val publicKey = parseHexStringToByteArray(storedPublicKey)
+        println("[DEBUG] Public key: " + bytesToHex(publicKey))
+
+        when (val result = sendApdu(0x00, 0x01, 0x06, 0x00, stringToHexArray(challenge))) {
+            is ApduResult.Success -> {
+                println("APDU command executed successfully!")
+                println("response: " + bytesToHex(result.response))
+                println("[DEBUG] Signature Sucess: " + bytesToHex(result.response))
+            }
+            is ApduResult.Failed -> TODO()
+        }
+    }
+
+    private fun verifySignature(publicKey: ByteArray?, signature: ByteArray?, challenge: String?): Boolean {
+        val key: PublicKey? = RSAUtils.generatePublicKeyFromBytes(publicKey)
+        if (key == null) {
+            return false
+        }
+        return RSAUtils.accuracy(signature, key, challenge)
+    }
+
+    fun disconnectCard() {
+        ApplicationState.reset()
+    }
+
     fun isCardConnected(): Boolean {
-        return ApplicationState.isCardInserted && ApplicationState.isCardVerified
+        return ApplicationState.isCardInserted.value && ApplicationState.isCardVerified
+    }
+
+    fun bytesToHex(bytes: ByteArray?): String? {
+        return bytes?.joinToString(" ") { "%02X".format(it) }
+    }
+
+    fun hexToString(hexInput: String?): String {
+        val hex = hexInput?.replace(" ", "") ?: return ""
+        println("Hex to string: $hex")
+        println("=====>hex length: ${hex.length}")
+        require(hex.length % 2 == 0) { "Invalid hex string length" }
+        return hex.chunked(2)
+            .map { it.toInt(16).toChar() }
+            .joinToString("")
+    }
+
+    fun stringToHexArray(str: String): ByteArray {
+        return str.toByteArray(Charsets.UTF_8)
     }
 
     companion object {
@@ -100,5 +209,11 @@ class CardController {
                 instance ?: CardController().also { instance = it }
             }
         }
+    }
+
+    fun parseHexStringToByteArray(hexString: String): ByteArray {
+        return hexString.trim().split(" ")
+            .map { it.toInt(16).toByte() }
+            .toByteArray()
     }
 }

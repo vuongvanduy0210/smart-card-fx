@@ -1,5 +1,6 @@
 package com.smartcard.smart_card_fx
 
+import com.smartcard.smart_card_fx.controller.DBController
 import com.smartcard.smart_card_fx.global.GlobalLoader
 import com.smartcard.smart_card_fx.view.viewcontroller.HomeController
 import javafx.application.Application
@@ -15,6 +16,8 @@ class MainApplication : Application() {
         mainStage.scene = scene
         GlobalLoader.fxmlLoaderHome.getController<HomeController>().init()
         mainStage.show()
+
+        DBController.createTableIfNotExists()
     }
 
     private fun initLoader() {

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane prefHeight="500.0" prefWidth="800.0" style="-fx-background-color: #ECEFF1;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="co.sun.auto.fluter.demofx.view.viewcontroller.CardNoInfo">
+    <children>
+        <VBox alignment="CENTER" maxWidth="500.0" prefHeight="400.0" spacing="25.0" style="-fx-background-color: #FFFFFF; -fx-background-radius: 15; -fx-border-radius: 15; -fx-border-color: #CFD8DC; -fx-border-width: 1;" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="100.0" AnchorPane.rightAnchor="100.0" AnchorPane.topAnchor="50.0">
+
+            <padding>
+                <Insets bottom="40.0" left="40.0" right="40.0" top="40.0" />
+            </padding>
+
+            <VBox alignment="CENTER" spacing="5.0">
+                <Label text="Thẻ trắng" textFill="#37474F">
+                    <font>
+                        <Font name="Segoe UI Bold" size="28.0" />
+                    </font>
+                </Label>
+                <Label text="Thẻ này chưa có dữ liệu công dân." textFill="#78909c">
+                    <font>
+                        <Font name="Segoe UI" size="16.0" />
+                    </font>
+                </Label>
+                <Label text="Vui lòng khởi tạo thông tin để tiếp tục sử dụng." textFill="#78909c">
+                    <font>
+                        <Font name="Segoe UI" size="14.0" />
+                    </font>
+                </Label>
+            </VBox>
+
+            <Region prefHeight="10.0" />
+
+            <Button fx:id="btnCreatteInfo" onAction="#onCreateInfoClick" prefHeight="45.0" prefWidth="200.0" style="-fx-background-color: #263238; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 25; -fx-cursor: hand;" text="+ Tạo thông tin mới">
+                <effect>
+                    <DropShadow color="#00000033" height="10.0" offsetY="3.0" radius="4.5" width="10.0" />
+                </effect>
+            </Button>
+
+        </VBox>
+    </children>
+</AnchorPane>

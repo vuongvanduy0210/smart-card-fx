@@ -81,6 +81,12 @@ dependencies {
     // 4. Logging (Logback + SLF4J)
     implementation("org.slf4j:slf4j-api:1.7.32")
 
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+
+    // QUAN TRỌNG: Thư viện này cung cấp Dispatchers.JavaFx
+    // Giúp bạn chạy coroutine trên luồng UI mà không cần Platform.runLater
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-javafx:1.7.3")
+
 }
 
 tasks.withType<Test> {
